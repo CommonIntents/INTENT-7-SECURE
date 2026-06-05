@@ -1,4 +1,4 @@
-# INTENT-7-SECURE — INTENT-7 Secure Transport (Optional Reference Implementation) [![Org](https://img.shields.io/badge/Org-CommonIntents-144-darkgray.svg)](https://github.com/CommonIntents)
+# INTENT-7-SECURE — INTENT-7 Secure Transport (Optional Reference Implementation) [![Org](https://img.shields.io/badge/Org-CommonIntents--144-darkgray.svg)](https://github.com/CommonIntents)
 
 **One possible implementation of BIND-19, not a mandatory protocol component.**
 
