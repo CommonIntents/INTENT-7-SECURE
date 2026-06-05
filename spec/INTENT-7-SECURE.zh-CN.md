@@ -1,6 +1,6 @@
-# CISS 协议白皮书
+# INTENT-7-SECURE 协议白皮书
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/badge/Version-0.1.0--draft-orange.svg)]() [![Status](https://img.shields.io/badge/Status-RFC%20Draft-yellow.svg)]() [![Org](https://img.shields.io/badge/Org-CommonIntents-darkgray.svg)](https://github.com/CommonIntents)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/badge/Version-0.1.0--draft-orange.svg)]() [![Status](https://img.shields.io/badge/Status-RFC%20Draft-yellow.svg)]() [![Org](https://img.shields.io/badge/Org-CommonIntents-144-darkgray.svg)](https://github.com/CommonIntents)
 
 ## 安全意图与控制协议
 
@@ -13,7 +13,7 @@
 
 ## 一、核心定位
 
-CISS（CIS Secure）是**基于mTLS的传输安全实现**。
+INTENT-7-SECURE（INTENT-7 Secure）是**基于mTLS的传输安全实现**。
 
 它在Agent与工具之间建立端到端加密信道，并在连接建立的第一毫秒完成密码学身份证明。
 
@@ -86,12 +86,12 @@ TLS会话可缓存以加速后续连接。会话缓存的管理和有效期由�
 
 ## 五、协议边界
 
-CISS **负责**：
+INTENT-7-SECURE **负责**：
 - 定义mTLS握手规范
 - 定义基于私钥的身份模型
 - 定义证书验证要求
 
-CISS **不负责**：
+INTENT-7-SECURE **不负责**：
 - 规定TLS的具体版本（由运维配置决定）
 - 规定是否启用0-RTT（由运维配置决定）
 - 规定证书的签发和吊销流程（由PKI生态提供）
@@ -131,7 +131,7 @@ Agent私钥的存储和保护由实现负责。建议使用安全硬件模块或
 
 CIB将CIS绑定到CISS。当CIB协商传输格式和完整性校验后，实际的数据传输通过CISS的mTLS信道完成。
 
-CISS是CIB当前绑定的传输实现。未来可能出现CISS-QUIC、CISS-PQC等替代实现。所有替代实现必须提供相同的安全属性：端到端加密、握手时身份证明、传输完整性保护。
+CISS是CIB当前绑定的传输实现。未来可能出现CISS-QUIC、INTENT-7-SECURE-PQC等替代实现。所有替代实现必须提供相同的安全属性：端到端加密、握手时身份证明、传输完整性保护。
 
 ---
 

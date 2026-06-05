@@ -1,35 +1,35 @@
-# CISS — CIS Secure Transport (Optional Reference Implementation) [![Org](https://img.shields.io/badge/Org-CommonIntents-darkgray.svg)](https://github.com/CommonIntents)
+# INTENT-7-SECURE — INTENT-7 Secure Transport (Optional Reference Implementation) [![Org](https://img.shields.io/badge/Org-CommonIntents-144-darkgray.svg)](https://github.com/CommonIntents)
 
-**One possible implementation of CIB, not a mandatory protocol component.**
+**One possible implementation of BIND-19, not a mandatory protocol component.**
 
-CISS provides mTLS-based encrypted transport as a reference implementation of the CIB transport binding specification.
+INTENT-7-SECURE provides mTLS-based encrypted transport as a reference implementation of the BIND-19 transport binding specification.
 
-CISS is NOT the "skeleton" of the protocol family — transport security is infrastructure, and trust is a multi-dimensional collaboration across the ecosystem (L0 gene-lock hash, Cellrix view hash, Helix-Mind experience verification, Tuck physical isolation).
+INTENT-7-SECURE is NOT the "skeleton" of the protocol family — transport security is infrastructure, and trust is a multi-dimensional collaboration across the ecosystem (L0 gene-lock hash, Cellrix view hash, Helix-Mind experience verification, Tuck physical isolation).
 
 ## Identity Model
 The Agent's private key is its local trust anchor. Identity is cryptographically proven at mTLS handshake.
 
 ## Protocol Stack
 ```
-CIS (intent syntax)
+INTENT-7 (intent syntax)
   ↑
-CIB (transport binding)
+BIND-19 (transport binding)
   ↑
-CISS ← You are here (optional mTLS reference implementation)
+INTENT-7-SECURE ← You are here (optional mTLS reference implementation)
   ↑
-CAP (consensus confirmation)
+CAPABILITY-13 (consensus confirmation)
 ```
 
 ## Read the Spec
-- [CISS v0.1.0-draft](spec/CISS.md)
-- [中文版](spec/CISS.zh-CN.md)
+- [INTENT-7-SECURE v0.1.0-draft](spec/INTENT-7-SECURE.md)
+- [中文版](spec/INTENT-7-SECURE.zh-CN.md)
 
 ## Related
 | Protocol | Repository |
 |:---|:---|
-| CIS | [CommonIntents/CIS](https://github.com/CommonIntents/CIS) |
-| CAP | [CommonIntents/CAP](https://github.com/CommonIntents/CAP) |
-| CIB | [CommonIntents/CIB](https://github.com/CommonIntents/CIB) |
+| INTENT-7 | [CommonIntents-144/INTENT-7](https://github.com/CommonIntents/INTENT-7) |
+| CAPABILITY-13 | [CommonIntents-144/CAPABILITY-13](https://github.com/CommonIntents/CAPABILITY-13) |
+| BIND-19 | [CommonIntents-144/BIND-19](https://github.com/CommonIntents/BIND-19) |
 
 ## License
 Apache 2.0 — see [LICENSE](LICENSE).

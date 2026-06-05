@@ -1,6 +1,6 @@
-# CISS: Secure Intent & Control Protocol
+# INTENT-7-SECURE: Secure Intent & Control Protocol
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/badge/Version-0.1.0--draft-orange.svg)]() [![Status](https://img.shields.io/badge/Status-RFC%20Draft-yellow.svg)]() [![Org](https://img.shields.io/badge/Org-CommonIntents-darkgray.svg)](https://github.com/CommonIntents)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/badge/Version-0.1.0--draft-orange.svg)]() [![Status](https://img.shields.io/badge/Status-RFC%20Draft-yellow.svg)]() [![Org](https://img.shields.io/badge/Org-CommonIntents-144-darkgray.svg)](https://github.com/CommonIntents)
 
 **Version**: 0.1.0-draft  
 **Status**: Working Group Internal Draft  
@@ -11,22 +11,22 @@
 
 ## 1. Core Positioning
 
-CISS (CIS Secure) is the **transport security implementation based on mTLS**.
+INTENT-7-SECURE (INTENT-7 Secure) is the **transport security implementation based on mTLS**.
 
 It establishes an end-to-end encrypted channel between the Agent and the tool, and completes cryptographic identity proof within the first millisecond of connection establishment.
 
-CISS is the **skeleton** of the protocol stack — providing structural security guarantees.
+INTENT-7-SECURE is the **skeleton** of the protocol stack — providing structural security guarantees.
 
 ---
 
 ## 2. Relationship with Other Layers
 
-CIB is the **specification**; CISS is the **implementation**.
+BIND-19 is the **specification**; INTENT-7-SECURE is the **implementation**.
 
-CIB defines: "Intent data is carried over a secure transport channel in a negotiated format."  
-CISS implements: "That secure channel is mTLS over HTTPS."
+BIND-19 defines: "Intent data is carried over a secure transport channel in a negotiated format."  
+INTENT-7-SECURE implements: "That secure channel is mTLS over HTTPS."
 
-CISS provides **long-term identity proof**. CAP issues **short-lived operational credentials** (JWT) on top of this. Long-term identity is not directly used for operational authorization; operational authorization must pass through a time-bound credential.
+INTENT-7-SECURE provides **long-term identity proof**. CAPABILITY-13 issues **short-lived operational credentials** (JWT) on top of this. Long-term identity is not directly used for operational authorization; operational authorization must pass through a time-bound credential.
 
 ---
 
@@ -60,7 +60,7 @@ Agent                         Server
   │      Agent identity          │
   │      cryptographically proven│
   │                              │
-  ├──── Encrypted CIS/CAP Data ──►
+  ├──── Encrypted INTENT-7/CAPABILITY-13 Data ──►
 ```
 
 Identity binding is completed within the first millisecond of connection establishment. Any subsequent operations are bound to this already-proven identity.
@@ -87,17 +87,17 @@ TLS sessions MAY be cached to accelerate subsequent connections. The management 
 
 ## 5. Protocol Boundaries
 
-CISS **is responsible for**:
+INTENT-7-SECURE **is responsible for**:
 - Defining the mTLS handshake specification
 - Defining the private-key-based identity model
 - Defining certificate verification requirements
 
-CISS **is not responsible for**:
+INTENT-7-SECURE **is not responsible for**:
 - Mandating the specific TLS version (determined by operational configuration)
 - Mandating whether to enable 0-RTT (determined by operational configuration)
 - Mandating certificate issuance and revocation processes (provided by the PKI ecosystem)
-- Defining transport format negotiation (CIB's responsibility)
-- Defining identity-based authorization logic (CAP's responsibility)
+- Defining transport format negotiation (BIND-19's responsibility)
+- Defining identity-based authorization logic (CAPABILITY-13's responsibility)
 
 ---
 
@@ -128,20 +128,20 @@ The storage and protection of the Agent's private key is the responsibility of t
 
 ---
 
-## 8. Relationship with CIB
+## 8. Relationship with BIND-19
 
-CIB binds CIS to CISS. After CIB negotiates the transport format and integrity check, the actual data transmission is completed through CISS's mTLS channel.
+BIND-19 binds INTENT-7 to INTENT-7-SECURE. After BIND-19 negotiates the transport format and integrity check, the actual data transmission is completed through INTENT-7-SECURE's mTLS channel.
 
-CISS is the transport implementation to which CIB is currently bound. In the future, alternative implementations such as CISS-QUIC or CISS-PQC may emerge. All alternative implementations must provide the same security properties: end-to-end encryption, identity proof at handshake, and transport integrity protection.
+INTENT-7-SECURE is the transport implementation to which BIND-19 is currently bound. In the future, alternative implementations such as INTENT-7-SECURE-QUIC or INTENT-7-SECURE-PQC may emerge. All alternative implementations must provide the same security properties: end-to-end encryption, identity proof at handshake, and transport integrity protection.
 
 ---
 
 ## 9. Protocol Boundaries Reaffirmed
 
-CISS is the layer responsible for **transport security** in the protocol stack. It does not define intent semantics (CIS's responsibility), does not define authorization logic (CAP's responsibility), and does not define format negotiation (CIB's responsibility).
+INTENT-7-SECURE is the layer responsible for **transport security** in the protocol stack. It does not define intent semantics (INTENT-7's responsibility), does not define authorization logic (CAPABILITY-13's responsibility), and does not define format negotiation (BIND-19's responsibility).
 
-**CISS exists so that CAP and CIS do not need to worry about whether the channel is secure — CISS guarantees it.**
+**INTENT-7-SECURE exists so that CAPABILITY-13 and INTENT-7 do not need to worry about whether the channel is secure — INTENT-7-SECURE guarantees it.**
 
 ---
 
-*This white paper is maintained by the CIS/CAP Protocol Working Group.*
+*This white paper is maintained by the INTENT-7/CAPABILITY-13 Protocol Working Group.*
