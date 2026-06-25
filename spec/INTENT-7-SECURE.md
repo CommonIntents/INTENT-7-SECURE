@@ -1,147 +1,83 @@
-# INTENT-7-SECURE: Secure Intent & Control Protocol
+# INTENT-7-SECURE: Mutual TLS and Edge Security Specification (v1.0.0-RFC-4)
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Version](https://img.shields.io/badge/Version-0.1.0--draft-orange.svg)]() [![Status](https://img.shields.io/badge/Status-RFC%20Draft-yellow.svg)]() [![Org](https://img.shields.io/badge/Org-CommonIntents--144-darkgray.svg)](https://github.com/CommonIntents)
+## 1. Introduction and Objectives
 
-**Version**: 0.1.0-draft  
-**Status**: Working Group Internal Draft  
-**Date**: 2026-05-22  
-**License**: Apache 2.0  
+This specification defines **INTENT-7-SECURE**, the cryptographic identity, transport-layer confidentiality, and edge network security standard within the **CommonIntents-144 (CI-144)** suite.
 
----
-
-## 1. Core Positioning
-
-INTENT-7-SECURE (INTENT-7 Secure) is the **transport security implementation based on mTLS**.
-
-It establishes an end-to-end encrypted channel between the Agent and the tool, and completes cryptographic identity proof within the first millisecond of connection establishment.
-
-INTENT-7-SECURE is the **skeleton** of the protocol stack — providing structural security guarantees.
+INTENT-7-SECURE is dedicated exclusively to **network-level and cryptographic link protection**. To maintain the strict decoupling of the protocol stack:
+- It does NOT manage frame boundaries, fragmentation, or sequence-based anti-reply (which are fully delegated to **BIND-19**) [BIND-19/spec/BIND-19.md].
+- It does NOT manage logical permission or task authorization mapping (which are fully delegated to **CAPABILITY-13**) [CAPABILITY-13/spec/CAPABILITY-13.md].
+- It acts as the secure, encrypted physical pipe for public networks, and defines the zero-trust local verification and credential-injection boundaries for edge environments.
 
 ---
 
-## 2. Relationship with Other Layers
+## 2. Mutual TLS 1.3 Cryptographic Profile (Public Networks)
 
-BIND-19 is the **specification**; INTENT-7-SECURE is the **implementation**.
+For all remote connections (such as WebSocket, TCP, or internet-facing endpoints), INTENT-7-SECURE mandates **Mutual TLS 1.3 (mTLS)** conforming to RFC 8446.
 
-BIND-19 defines: "Intent data is carried over a secure transport channel in a negotiated format."  
-INTENT-7-SECURE implements: "That secure channel is mTLS over HTTPS."
+### 2.1 Cipher Suites and Constraints
+To prevent cryptanalytic degradation, implementations MUST disable TLS 1.2 and all previous versions. Only the following cipher suites are permitted:
+- `TLS_AES_256_GCM_SHA384`
+- `TLS_CHACHA20_POLY1305_SHA256`
 
-INTENT-7-SECURE provides **long-term identity proof**. CAPABILITY-13 issues **short-lived operational credentials** (JWT) on top of this. Long-term identity is not directly used for operational authorization; operational authorization must pass through a time-bound credential.
-
----
-
-## 3. Identity Model
-
-### 3.1 Trust Anchor
-
-The Agent's private key is its sole trust anchor for identity. It does not rely on tokens issued by any centralized authority.
-
-The Agent's identity is determined by the public key of the certificate corresponding to the private key it holds. The certificate may be a standard X.509 certificate issued by a CA, or a self-signed certificate. Regardless of the certificate's origin, the Agent's identity is cryptographically proven upon completion of the mTLS handshake.
-
-### 3.2 Identity Verification Flow
-
-```
-Agent                         Server
-  │                              │
-  ├──── Establish TCP Connection ─►
-  ├──── TLS ClientHello ─────────►
-  │                              │
-  │◄─── TLS ServerHello ────────┤
-  │      + Server Certificate    │
-  │◄─── CertificateRequest ─────┤
-  │      (client cert required)  │
-  │                              │
-  ├──── Client Certificate ──────►
-  ├──── CertificateVerify ───────►
-  │      (signs handshake data   │
-  │       with private key)      │
-  │                              │
-  │◄─── Handshake Complete ─────┤
-  │      Agent identity          │
-  │      cryptographically proven│
-  │                              │
-  ├──── Encrypted INTENT-7/CAPABILITY-13 Data ──►
-```
-
-Identity binding is completed within the first millisecond of connection establishment. Any subsequent operations are bound to this already-proven identity.
+### 2.2 Mutual Certificate Verification (mTLS)
+- Both client and server MUST exchange and verify X.509 v3 certificates.
+- Self-signed certificates are rejected unless they are **explicitly pinned** in the L0 Gene Lock (via SHA-256 fingerprint matching).
+- Certificates signed by a private CA are accepted only if the CA's root fingerprint is declared in the L0 Gene Lock.
+- Certificate lifecycle management (rotation, revocation) follows the **CAPABILITY-13 Key Rotation Protocol** (Section 5) if the certificate is bound to the L0 Gene Lock identity. Otherwise, it follows standard X.509 CRL/OCSP mechanisms.
+- The `traceparent` (W3C Trace Context) from the INTENT-7 metadata MUST be bound to the TLS session ID or TLS Exported Keying Material (EKM) to prevent session-hijacking and connection multiplexing attacks.
 
 ---
 
-## 4. mTLS Handshake Specification
+## 3. Local Transport Security & Peer Verification (0-Overhead)
 
-### 4.1 Certificate Requirements
+When BIND-19 binds to local **Unix Domain Sockets (UDS, `unix://`)**, running CPU-heavy asymmetric cryptography (mTLS) is a waste of resource [Mind v3.4 §Law 01, §3.2, 12.5]. 
 
-Both server and client MUST hold certificates. The certificate public key serves as the identity identifier.
+Instead, INTENT-7-SECURE enforces **OS-level Peer verification**, achieving absolute zero-trust security with **0.00ms cryptographic overhead**:
 
-### 4.2 Certificate Verification
+### 3.1 Socket File Permissions
+The physical UDS socket files (e.g., `/var/run/helix.sock`) MUST be chmodded to **`0600`** immediately upon creation:
+- Read/Write access is strictly limited to the running process owner.
+- Parent directories MUST be restricted to prevent path-traversal attacks.
 
-The server verifies the validity of the client certificate: the certificate chain is complete, the certificate is within its validity period, and the certificate has not been revoked.
-
-The Agent verifies the validity of the server certificate: to prevent man-in-the-middle attacks.
-
-### 4.3 Session Management
-
-TLS sessions MAY be cached to accelerate subsequent connections. The management and validity period of session caches are determined by the implementation.
-
----
-
-## 5. Protocol Boundaries
-
-INTENT-7-SECURE **is responsible for**:
-- Defining the mTLS handshake specification
-- Defining the private-key-based identity model
-- Defining certificate verification requirements
-
-INTENT-7-SECURE **is not responsible for**:
-- Mandating the specific TLS version (determined by operational configuration)
-- Mandating whether to enable 0-RTT (determined by operational configuration)
-- Mandating certificate issuance and revocation processes (provided by the PKI ecosystem)
-- Defining transport format negotiation (BIND-19's responsibility)
-- Defining identity-based authorization logic (CAPABILITY-13's responsibility)
+### 3.2 Peer Credential Verification (`SO_PEERCRED`)
+When a client (such as `Anaphase`) connects to the local database daemon (`Helix-Mind`) over UDS, the server MUST intercept the socket and perform a **system-level Peer Credential check** [Anaphase v9.1 §3]:
+- On Linux: Query socket options using **`SO_PEERCRED`** to retrieve the connecting client's `ucred` (UID, GID, PID).
+- On macOS: Query socket options using **`LOCAL_PEERCRED`** to retrieve peer credentials.
+- **Strict UID/GID Matching**: The server MUST verify that the client's UID/GID matches the running server daemon's process owner. If a mismatch is detected, the server MUST immediately drop the connection and log a security audit event [1.4.3].
 
 ---
 
-## 6. Security Properties
+## 4. Tuck Proxy and KMS Isolation Boundary
 
-| Property | Implementation |
-|:---|:---|
-| **Encryption** | TLS end-to-end encryption; data cannot be eavesdropped during transmission |
-| **Identity** | Client certificate verification; Agent identity established at handshake |
-| **Integrity** | TLS record layer MAC; tampering results in immediate connection drop |
-| **Forward Secrecy** | Guaranteed by TLS key exchange algorithm (depending on operational configuration) |
+To prevent the active LLM or sandboxed WASM tools from exposing private credentials, INTENT-7-SECURE defines a strict **Zero-Credential Isolation Boundary** [4.3].
 
----
+### 4.1 Credential Label Routing (No-Secret Body)
+- No component inside the Anaphase executive loop or Tentacle tool sandbox is permitted to hold, view, or parse cleartext cookies or passwords [Anaphase v9.1 §2.2, 7].
+- Requests outbound MUST carry the **`X-Identity-Label`** header.
+- **Label Namespace Format**: The Label format MUST follow: `<namespace>/<identifier>@<instance-id>`
+  - `<namespace>`: The credential provider scope (e.g., `weibo`, `github`, `openai`).
+  - `<identifier>`: The specific credential identifier within the namespace.
+  - `<instance-id>`: (Optional) The unique Anaphase instance ID to prevent session collisions.
+  - *Example*: `X-Identity-Label: weibo/session_1@anaphase_01`
+- `Tuck` intercepts the connection at the edge, parses the label, matches it against its internal hardware-locked Key Management Service (KMS), and injects the actual `Cookie: SUB=xxxx;` or `Authorization: Bearer xxxx` into the HTTP header before egressing to the public network.
 
-## 7. Certificate Management
-
-### 7.1 Certificate Issuance
-
-Certificates are provided by the PKI ecosystem. Enterprise internal CAs, public CAs, or self-signed certificates may be used. The protocol does not mandate the issuance method.
-
-### 7.2 Certificate Revocation
-
-Certificate revocation is handled through standard mechanisms of the PKI ecosystem (CRL or OCSP). The protocol does not mandate the revocation method.
-
-### 7.3 Key Protection
-
-The storage and protection of the Agent's private key is the responsibility of the implementation. The use of secure hardware modules or operating system keychains is RECOMMENDED. The protocol does not mandate the protection method.
+### 4.2 KMS Chroot Jail Isolation and Standards
+- The KMS storage file and the decryption private keys MUST reside in a read-only, hardware-protected, or strictly chrooted directory owned exclusively by the `Tuck` daemon.
+- The KMS **SHOULD** support standard interfaces such as **PKCS#11** or integrate with hardware security modules (HSM) / Trusted Platform Module (TPM) for key storage and decryption.
+- Even if the `Anaphase` process or the `Tentacle` WASM sandbox is compromised, the attacker can only steal meaningless `Identity Labels`, leaving the real keys secure inside `Tuck`'s physical boundary.
 
 ---
 
-## 8. Relationship with BIND-19
+## 5. Security Error Codes
 
-BIND-19 binds INTENT-7 to INTENT-7-SECURE. After BIND-19 negotiates the transport format and integrity check, the actual data transmission is completed through INTENT-7-SECURE's mTLS channel.
+When a cryptographic or transport-level security breach is detected, the error **MUST** be propagated to the upper layer via the BIND-19 Error Frame (FrameType `0x06`) [3.2]. The Error Frame payload carries the INTENT-7-SECURE error code in its first 2 bytes:
 
-INTENT-7-SECURE is the transport implementation to which BIND-19 is currently bound. In the future, alternative implementations such as INTENT-7-SECURE-QUIC or INTENT-7-SECURE-PQC may emerge. All alternative implementations must provide the same security properties: end-to-end encryption, identity proof at handshake, and transport integrity protection.
+| Error Code | Hexadecimal | Name | Description |
+|:---|:---|:---|:---|
+| `2000` | `0x07D0` | `MTLS_HANDSHAKE_FAILED` | Remote TLS 1.3 or client certificate verification failed. |
+| `2010` | `0x07DA` | `UNTRUSTED_PEER_UID` | Local UDS peer credential (UID/GID) mismatches the process owner. |
+| `2020` | `0x07E4` | `KMS_KEY_INJECTION_FAILED` | Tuck failed to decrypt or inject the credential matching the Label. |
+| `2030` | `0x07EE` | `CERTIFICATE_EXPIRED` | X.509 certificate has expired. |
+| `2040` | `0x07F8` | `CERTIFICATE_REVOKED` | X.509 certificate has been revoked (via CRL/OCSP). |
 
----
-
-## 9. Protocol Boundaries Reaffirmed
-
-INTENT-7-SECURE is the layer responsible for **transport security** in the protocol stack. It does not define intent semantics (INTENT-7's responsibility), does not define authorization logic (CAPABILITY-13's responsibility), and does not define format negotiation (BIND-19's responsibility).
-
-**INTENT-7-SECURE exists so that CAPABILITY-13 and INTENT-7 do not need to worry about whether the channel is secure — INTENT-7-SECURE guarantees it.**
-
----
-
-*This white paper is maintained by the INTENT-7/CAPABILITY-13 Protocol Working Group.*
