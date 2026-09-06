@@ -1,4 +1,5 @@
 # INTENT-7-SECURE: Mutual TLS and Edge Security Specification (v1.0.0-RFC-4)
+> © 2026 CommonIntents. Licensed under CC BY-ND 4.0 (https://creativecommons.org/licenses/by-nd/4.0/).
 
 ## 1. Introduction and Objectives
 

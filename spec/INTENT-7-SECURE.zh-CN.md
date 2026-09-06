@@ -1,4 +1,5 @@
 # INTENT-7-SECURE：双向TLS与边缘安全规范（v1.0.0-RFC-4）
+> © 2026 CommonIntents. 依据 CC BY-ND 4.0 许可（https://creativecommons.org/licenses/by-nd/4.0/）。
 
 ## 1. 引言与设计目标
 本规范定义了 **INTENT-7-SECURE** 标准，它是 **CommonIntents-144（CI-144）** 协议族中的密码学身份认证、传输层机密性与边缘网络安全标准。
